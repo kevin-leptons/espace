@@ -1,0 +1,8 @@
+Package: espace
+Version: $VERSION
+Section: base
+Priority: Optional
+Architecture: all
+Depends:
+Maintainer: Kevin Leptons <kevin.leptons@gmail.com>
+Description: Error Handling Library for C language

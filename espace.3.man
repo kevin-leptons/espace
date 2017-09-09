@@ -1,0 +1,105 @@
+.TH man 3 "$BUILD_DATE" "$VERSION" "espace man page"
+
+.SH NAME
+espace \- Error Space
+
+.SH SYNOPSIS
+.nf
+#include <espace/error.h>
+.sp
+
+ESPACE_DECLARE(prefix)
+ESPACE_DEFINE(prefix, errstrs, errstrs_size)
+
+.SH DESCRIPTION
+.B
+ESPACE_DECLARE() 
+declare ERROR_STORAGE and ERROR_STR_FN with prefix. This
+macro SHOULD be put into header file '.h'. For example, if use
+ESPACE_DECLARE(liba) will receive:
+
+    // in single-thread program
+    extern unsigned int liba_errno;
+    
+    // or in multi-thread program
+    extern __thread int liba_errno;
+
+    // and
+    const char * liba_errstr(unsigned int code);
+
+.B
+ESPACE_DEFINE() 
+define ERROR_STORAGE and implement ERROR_STR_FN. This
+macro SHOULD be put into source file '.c'. For example, if use
+ESPACE_DEFINE(liba, LIBA_ERRSTRS, LIBA_ERRSTRS_SIZE) will receive:
+
+    // in single thread
+    unsigned int liba_errno = 0;
+
+    // or in multi-thread
+    __thread unsigned int liba_errno = 0;
+
+    // and
+    const char * liba_errstr(unsigned int code)
+    {...}
+
+LIBA_ERRSTRS is array of pointers to ERROR_STRING correspond with
+ERROR_CODE. LIBA_ERRSTRS_SIZE is number of elements in LIBA_ERRSTRS. Both
+of them is your-definitions in your ERROR_CLASS For example:
+
+    #define LIBA_ERRSTRS_SIZE 2
+    const char * LIBA_ERRSTRS[LIBA_ERRSTRS_SIZE] = {
+        "1rt Error",
+        "2sd Error"
+    };
+
+.B
+liba_errno 
+is use to raise and handle ERROR by getting and setting such as:
+
+    // raise error
+    liba_errno = LIBA_E001;
+
+    // handle error
+    if (liba_errno == LIBA_E001) {
+        // handle
+    }
+
+.B
+liba_errstr() 
+is use to convert ERROR_CODE to ERROR_STRING such as:
+
+    printf("error string=%s\\n", liba_sterr(LIBA_E001));
+
+For more detail about concepts and manual, see
+"/usr/share/doc/espace/index.txt".
+
+.SH EXAMPLES
+See /usr/share/doc/espace/example/*.c
+
+.SH FILES
+.TP 4
+/usr/lib/libespace.so
+Dynamic library
+
+.TP
+/usr/include/espace/*.h
+Header files.
+
+.TP
+/usr/share/man/man3/espace.3.gz
+Manunal file.
+
+.TP
+/usr/share/doc/espace/*.txt
+Document files.
+
+.TP
+/usr/share/doc/espace/example/*.c
+Example files.
+
+.SH REFERENCES 
+Development repository at https://github.com/kevin-leptons/espace
+
+.SH AUTHORS
+Kevin Leptons <kevin.leptons@gmail.com>

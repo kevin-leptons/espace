@@ -1,0 +1,508 @@
+OVERVIEW
+========
+
+    espace define and support to deal with problem: "How to handle errors in C
+    language?". This is specification of espace. To understand that, look for:
+    
+        Sections 01 - 12: Related concepts
+        Sections 13 - 20: Rules of espace
+        Section 21: Define and use ERROR_SPACE
+        Section 22: Example
+
+TABLE OF CONTENTS
+=================
+
+    01. ERROR, ERROR_SET
+    02. ERROR_CODE, ERROR_CODE_SET
+    03. ERROR_CODE_NAME, ERROR_CODE_NAME_SET
+    04. ERROR_STRING, ERROR_STRING_SET
+    05. ERROR_STRING_FN
+    06. ERROR_CLASS
+    07. CODE_CLASS
+    08. INTERNAL_ERROR, EXTERNAL_ERROR 
+    09. INTERNAL_ERROR_SET, EXTERNAL_ERROR_SET
+    10. ERROR_STORAGE
+    11. ERROR_SPACE
+    12. ERROR_RAISING, ERROR_CATCHING
+    13. RULES
+    14. RULE_1
+    15. RULE_2
+    16. RULE_3
+    17. RULE_4
+    18. RULE_5
+    19. RULE_6
+    20. RULE_7
+    21. Define ERROR_SPACE
+    22. Example
+
+01. ERROR, ERROR_SET
+====================
+
+    ERROR is situations which cause function can not complete. For example:
+
+        - Divide a number for zero
+        - Allocate memory block when system memory is full...
+        - ...
+
+    ERROR_SET is set of ERROR: E = {e1, e2, ..., en}
+
+02. ERROR_CODE, ERROR_CODE_SET
+==============================
+
+    ERROR_CODE is unsigned integer number which presents for ERROR. For
+    example:
+
+        1, 2, 3, ... 
+
+    ERROR_CODE_SET is set of ERROR_CODE: C = {c1, c2, ..., cn}
+
+03. ERROR_CODE_NAME, ERROR_CODE_NAME_SET
+========================================
+
+    ERROR_CODE_NAME is string which presents for ERROR_CODE. For example:
+
+        LIBA_EDINVAL
+        LIBA_ENOITEM
+        ...
+
+    ERROR_CODE_NAME_SET is set of ERROR_CODE_NAME:
+
+        M = {m1, m2, ..., mn}
+
+04. ERROR_STRING, ERROR_STRING_SET
+==================================
+
+    ERROR_STRING is string which summary ERROR for ERROR_CODE. For example:
+
+        - Out of memory
+        - No such item
+        - ...
+
+    ERROR_STRING_SET is set of ERROR_STRING: S = {s1, s2, ..., sn}
+
+05. ERROR_STRING_FN
+===================
+
+    It is function which returns ERROR_STRING correspond with ERROR_CODE.
+    For example:
+
+        const char * liba_errstr(unsigned int code);
+
+06. ERROR_CLASS
+==============
+
+    It is concept specifies errors which can be occurs in code, includes:
+    
+        - ERROR_SET
+        - ERROR_CODE_SET correspond with ERROR_SET
+        - ERROR_CODE_NAME_SET correspond with ERROR_CODE_SET
+        - ERROR_STRING_SET correspond with ERROR_CODE_SET 
+        - ERROR_STRING_FN of ERROR_CODE_SET and ERROR_STRING_SET
+
+    Notation:
+
+        L = {ERROR_SET, ERROR_CODE_SET, ERROR_CODE_NAME_SET,
+             ERROR_STRING_SET, ERROR_STRING_FN}
+
+    For example, error handling in SUS - Single UNIX Specification, called
+    SUS ERROR_CLASS:
+
+        - ERROR_SET, ERROR_CODE_SET, ERROR_CODE_NAME_SET and ERROR_STRING_SET:
+          see "man errno"
+        - ERROR_STRING_FN: see "man strerror"
+
+07. CODE_CLASS
+==============
+
+    It is code which can be uses the same ERROR_CLASS. Code may be is
+    single-project, related-project or set of many project. For example,
+    Linux kernel is CODE_CLASS, it includes many parts of code and uses only
+    SUS ERROR_CLASS.
+
+08. INTERNAL_ERROR, EXTERNAL_ERROR
+==================================
+
+    That is relative concepts. If you stay in CODE_CLASS called A:
+
+        - INTERNAL_ERROR is ERROR in ERROR_CLASS of A
+        - EXTERNAL_ERROR is ERROR in ERROR_CLASS which is not ERROR_CLASS of A
+
+09. INTERNAL_ERROR_SET, EXTERNAL_ERROR_SET
+==========================================
+
+    INTERNAL_ERROR_SET is set of INTERNAL_ERROR.
+
+    EXTERNAL_ERROR_SET is set of EXTERNAL_ERROR.
+
+10. ERROR_STORAGE
+=================
+
+    It is a method which uses to store/retrieve last ERROR_CODE. For example:
+
+        - extern unsigned int liba_errno;
+        - extern __thread unsigned int liba_errno;
+        - errno macro, see "man errno"
+        
+11. ERROR_SPACE
+===============
+
+    It is concept includes:
+    
+        - ERROR_CLASS
+        - THREADING
+        - ERROR_STORAGE correspond with EXECUTION_UNIT
+    
+    Notation:
+
+        P = {ERROR_CLASS, EXECUTION_UNIT, ERROR_STORAGE}    
+
+    THREADING is thread in multi-threading concepts. For detail, see:
+    https://en.wikipedia.org/wiki/Multithreading_(computer_architecture). If
+    multi-threading is not used, consider that process contains one threading.
+
+    Each THREADING use one ERROR_SPACE. Where ERROR_CLASS is shared inside
+    CODE_CLASS, ERROR_STORAGE is local-THREADING and doesn't affect to other
+    THREADING. It guarantees that errors occurs in THREADING doesn't cause
+    mistake ot other THREADING.
+
+12. ERROR_RAISING, ERROR_CATCHING
+================================
+
+    ERROR_RAISING is seting ERROR_STORAGE to specific ERROR_CODE to inform
+    that ERROR has occurs and can't handle. For example:
+    
+        liba_errno = 1
+        liba_errno = LIBA_ENOITEM 
+
+    ERROR_CATCHING is checking ERROR_STORAGE to know ERROR has occurs or not
+    For example:
+
+        if (liba_errno != 0) {}
+        if (liba_errno != ESPACE_ENONE) {}
+ 
+13. RULES
+=========
+
+    Before are concepts to explain Error Handling. Here are rules of espace
+    and it will be explain in next sections:
+
+        01. Don't re-define EXTERNAL_ERROR as INTERNAL_ERROR
+        02. Use minimal ERROR_CODE_SET
+        03. Use sequence ERROR_CODE_SET
+        04. Set ERROR_CODE_NAME follow:
+            ^([A-Z][A-Z0-9_]{1,7})_(E[A-Z0-9_]{1,7})$
+        05. Set ERROR_STRING follow: ^.{1,32}$
+        06. Set ERROR_STORAGE to zero after handle ERROR
+        07. Function's specication must specifies ERROR
+
+14. RULE_1
+==========
+
+    "Don't re-define EXTERNAL_ERROR as INTERNAL_ERROR".
+
+    Don't re-define INTERNAL_ERROR with same meaning of EXTERNAL_ERROR. For
+    example:
+
+        - In function which read configuration file:
+          read_conf(const char *path);
+        - Pass non-exist path into that function
+        - Use open() to open that file and receive ENOENT
+        - Don't raise define ECONF_NOEXIST - Configuration file is not exist
+          and raise it, just return -1 to inform caller that function is
+          failed and allow caller to catch ERROR then handle them.
+
+    BAD_WAY:
+
+        #define ECONF_NOEXIST 1                 // don't do this
+
+        int read_conf(const char *path)
+        {
+            int fd;
+        
+            fd = open(path, O_RDONLY);
+            if (errno == ENOENT) {
+                liba_errno = ECONF_NOEXIST;     // don't do this
+                return -1;
+            }
+            ...
+        }
+
+    GOOD_WAY:
+        
+        int read_conf(const char *path)
+        {
+            int fd;
+        
+            fd = open(path, O_RDONLY);
+            if (errno != 0)
+                return -1;      // inform caller that error has occur
+            ...
+        }
+
+15. RULE_2
+==============================
+
+    "Use minimal ERROR_CODE_SET".
+
+    Specify minimal ERROR_CODE_SET, use same ERROR_CODE for similar ERROR. For
+    example, two functions below should uses LIBA_ENOITEM instead of
+    {LIBA_EHTABLENOITEM, LIBA_EMAPNOITEM}:
+
+        // retrieve value from key in hash table
+        int htable_get(struct htable *t, const char *key, void **value);
+
+        // retrieve value from key in map
+        int map_get(struct map *m, const char *key, void **vaule);
+
+    BAD_WAY:
+
+        #define LIBA_EHTABLENOITEM 1    // don't do this
+        #define LIBA_EMAPNOITEM 2       // don't do this
+
+        int htable_get(struct htable *t, const char *key, void **value)
+        {
+            if (/*key doesn't exist*/) {
+                liba_errno = LIBA_EHTABLENOITEM;    // dont' do this
+                return -1;
+            }
+            ...
+        }
+        
+        int map_get(struct map *m, const char *key, void **vaule)
+        {
+            if (/*key doesn't exist*/) {
+                liba_errno = LIBA_EMAPNOITEM;       // don't do this
+            }
+        }
+
+    GOOD_WAY:
+
+        #define LIBA_ENOITEM
+
+        int htable_get(struct htable *t, const char *key, void **value)
+        {
+            if (/*key doesn't exist*/) {
+                liba_errno = LIBA_ENOITEM;          // use same ERROR_CODE
+                return -1;
+            }
+            ...
+        }
+        
+        int map_get(struct map *m, const char *key, void **vaule)
+        {
+            if (/*key doesn't exist*/) {
+                liba_errno = LIBA_ENOITEM;          // use same ERROR_CODE
+            }
+        }
+        
+16. RULE_3
+==========
+
+    "Use sequence ERROR_CODE_SET".
+
+    ERROR_CODE must start from 1 and increase by 1.
+
+    BAD_WAY:
+
+        E = {1, 2, 7, 8, 9, 10}                 // missing {3, 4, 5, 6}
+
+    GOOD_WAY:
+
+        E = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}     // continuous from 1 to 10
+
+17. RULE_4
+==========
+
+    "Set ERROR_CODE_NAME follow: ^([A-Z][A-Z0-9_]{1,7})_(E[A-Z0-9_]{1,7})$". 
+    First block is name of CODE_CLASS. Second block is very short string
+    specifies ERROR.
+
+    BAD_WAY:
+
+        liba_ENOITEM
+        LIBA_enoitem 
+        LIBA_NO_ITEM
+
+    GOOD_WAY:
+
+        LIBA_ENOITEM
+        LIBA_EDINVAL
+
+18. RULE_5
+==========
+
+    "Set ERROR_STRING follow: ^.{1,32}$". For example:
+
+        - "No such item"
+        - "Data is invalid"
+
+
+19. RULE_6
+==========
+
+    "Function's specification ERROR, no matter where specication is locate".
+
+    That mean it must point:
+    
+        - How to know error is occurs
+        - What is ERROR may be occurs 
+        
+    For example, specication of liba_fn1:
+
+        /*
+        RETURNS
+
+            On success, return 0. On failed, return -1.
+
+        INTERNAL ERRORS - liba_errno will be set to:
+
+            LIBA_EDINVAL ...
+            LIBA_ENOITEM ...
+            ...
+
+        EXTERNAL ERRORS - libb_errno will be set to:
+
+            LIBB_E001 ...
+            LIBB_E002 ...
+        ...
+        */
+        int liba_fn1(void);
+
+20. RULE_7
+==========
+
+    "Set ERROR_STORAGE to zero after handle ERROR" to show that ERROR was
+    handle and no ERROR now. For example:
+
+    BAD_WAY:
+
+        int read_conf(const char *path) 
+        {
+            int fd;
+
+            fd = open(path, O_RDONLY);
+            if (fd < 0)
+                return DEFAULT_CONF;            // don't just do this
+            ...
+        }
+
+    GOOD_WAY:
+
+        int read_conf(const char *path) 
+        {
+            int fd;
+
+            fd = open(path, O_RDONLY);
+            if (fd < 0) {
+                errno = 0;                      // do this
+                return DEFAULT_CONF;
+            }
+            ...
+        }
+
+21. Define ERROR_SPACE
+======================
+
+    Define ERROR_CLASS mean that define it's components, includes:
+
+        - ERROR_SET
+        - ERROR_CODE_SET
+        - ERROR_CODE_NAME_SET
+        - ERROR_STRING_SET
+        - ERROR_STRING_FN
+        - ERROR_STORAGE 
+
+    espace support to define ERROR_CLASS but it doesn't do any thing at all.
+    To define ERROR_CLASS, follow step:
+
+        1. Understand EXTERNAL_ERROR_SET
+        2. Pick name of CODE_CLASS to use as prefix of ERROR_CLASS
+        3. Design draft APIs of CODE_CLASS
+        4. Detect ERROR_SET, know as INTERNAL_ERROR_SET
+        5. Detect ERROR_CODE_NAME_SET
+        6. Detect ERROR_STRING_SET 
+        7. Detect ERROR_CODE 
+        8. Detect ERROR_STRING
+        9. Use macro ESPACE_DECLARE() to declare rest of ERROR_CLASS
+        19. Use macro ESPACE_DEFINE() to define rest of ERROR_CLASS
+        11. If it's not okey, goto step 1. If it's okey, break
+
+    For example, done into step 7:
+
+        ERROR_CODE_NAME     ERROR_STRING        Description            
+        ------------------------------------------------------
+        LIBA_E001           Error 001           ...
+        LIBA_E002           Error 002A          ...
+        LIBA_ENOITEM        No such item        ...
+        LIBA_EDINVAL        Data is invalid     ...
+
+    Declare ERROR_SPACE in file 'liba/error.h':
+        
+        #include <espace/error.h>
+
+        // declare, define ERROR_CODE_NAME_SET and ERROR_CODE_SET
+        #define LIBA_E001 1
+        #define LIBA_E002 2
+        #define LIBA_ENOITEM 3
+        #define LIBA_EDINVAL 4
+
+        // declare ERROR_STORAGE, ERROR_STRING_FN by espace macro
+        ESPACE_DECLARE(liba)
+
+    Define ERROR_SPACE in file 'liba/error.c':
+
+        // define array of ERROR_STRING which indexed by ERROR_CODE
+        #define LIBA_ERRSTRS_SIZE 4
+        const char * LIBA_ERRSTRS[LIBA_ERRSTRS_SIZE] = {
+            "Error 001",                // correspond with LIBA_E001
+            "Error 002",                // correspond with LIBA_E002
+            "No such item",             // correspond with LIBA_ENOITEM
+            "Data is invalid"           // correspond with LIBA_EDINVAL
+        }
+
+        // define ERROR_STORAGE, ERROR_STRING_FN by espace macro
+        ESPACE_DEFINE(liba, LIBA_ERRSTRS, LIBA_ERRSTRS_SIZE)
+
+    Then, it's able to handle error:
+
+        // raise error
+        liba_errno = LIBA_ENOITEM
+
+        // catch error
+        if (liba_errno == LIBA_EDINVAL) {}
+
+        // retrieve ERROR_STRING from ERROR_CODE
+        printf("error string=%s\n", liba_errstr(LIBA_ENOITEM))
+
+    ERROR_SPACE is auto create and auto access. For example:
+
+        // entry of thread 1
+        void * t1_entry(void *arg)
+        {
+            liba_errno = LIBA_E001;     // access to ERROR_SPACE of thread 1
+            if (liba_errno != 0)        // also
+        }
+
+        // entry of thread 2
+        void * t2_entry(void *arg)
+        {
+            liba_errno = LIBA_E002;     // access to ERROR_SPACE of thread 2
+            if (liba_errno != 0)        // also
+        }
+
+        int main(int argc, char *argv[])
+        {
+            pthread_t t1;
+            pthread_t t2;
+        
+            pthread_create(&t1, NULL, t1_entry, NULL);
+            pthread_create(&t2, NULL, t1_entry, NULL);
+        
+            ...
+        }
+
+22. Example
+===========
+
+    If espace has been installed on system, see "/usr/share/doc/examples/*.c".
+    If source code is avaiable, see "doc/index.txt".

@@ -1,0 +1,54 @@
+ESPACE
+======
+
+    Error Handling for C language. 
+
+    Kevin Leptons <kevin.leptons@gmail.com>
+    LGPL License
+    Sept, 2017
+
+FEATURES
+========
+
+    - Concepts related with Error Handling
+    - Rules to handle error
+    - Shared variable to store last error code
+    - Function convert error code into string
+
+USAGE
+=====
+    
+    /*
+    This is interfaces, for more detail see 'doc/index.txt' or read man
+    page by command 'man 3 espace'.
+    */
+
+    #include <espace/error.h>
+
+    // macros
+    ESPACE_DECLARE(prefix)
+    ESPACE_DEFINE(prefix, errstrs, errstrs_size)
+
+BUILDING
+========
+
+    dependency packages
+    $ apt-get install make cmake 
+
+    build from source code
+    $ ./ctl build
+
+    pack into Debian package at dist/espace<version>_all.deb
+    $ ./ctl dist
+
+    install to system by dpkg
+    $ dpkg -i dist/espace<version>_all.deb
+
+    clear all of build files
+    $ ./ctl clear
+
+
+REFERENCES
+==========
+
+    None
