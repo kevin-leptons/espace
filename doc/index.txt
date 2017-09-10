@@ -12,28 +12,29 @@ OVERVIEW
 TABLE OF CONTENTS
 =================
 
-    01. ERROR, ERROR_SET
-    02. ERROR_CODE, ERROR_CODE_SET
-    03. ERROR_CODE_NAME, ERROR_CODE_NAME_SET
-    04. ERROR_STRING, ERROR_STRING_SET
-    05. ERROR_STRING_FN
-    06. ERROR_CLASS
-    07. CODE_CLASS
-    08. INTERNAL_ERROR, EXTERNAL_ERROR 
-    09. INTERNAL_ERROR_SET, EXTERNAL_ERROR_SET
-    10. ERROR_STORAGE
-    11. ERROR_SPACE
-    12. ERROR_RAISING, ERROR_CATCHING
-    13. RULES
-    14. RULE_1
-    15. RULE_2
-    16. RULE_3
-    17. RULE_4
-    18. RULE_5
-    19. RULE_6
-    20. RULE_7
-    21. Define ERROR_SPACE
-    22. Example
+    00. ERROR, ERROR_SET
+    00. ERROR_CODE, ERROR_CODE_SET
+    00. ERROR_CODE_NAME, ERROR_CODE_NAME_SET
+    00. ERROR_STRING, ERROR_STRING_SET
+    00. ERROR_STRING_FN
+    00. ERROR_CLASS, ERROR_CLASS_ID
+    00. CODE_CLASS
+    00. INTERNAL_ERROR, EXTERNAL_ERROR 
+    00. INTERNAL_ERROR_SET, EXTERNAL_ERROR_SET
+    00. ERROR_STATE
+    00. ERROR_SPACE
+    00. ERROR_RAISING, ERROR_CATCHING, ERROR_CLEARING
+    00. ERROR_RAISING_FN, ERROR_CLEARING_FN
+    00. RULES
+    00. RULE_1
+    00. RULE_2
+    00. RULE_3
+    00. RULE_4
+    00. RULE_5
+    00. RULE_6
+    00. RULE_7
+    00. Define ERROR_SPACE
+    00. Example
 
 01. ERROR, ERROR_SET
 ====================
@@ -88,10 +89,11 @@ TABLE OF CONTENTS
 
         const char * liba_errstr(unsigned int code);
 
-06. ERROR_CLASS
-==============
+06. ERROR_CLASS, ERROR_CLASS_ID
+===============================
 
-    It is concept specifies errors which can be occurs in code, includes:
+    ERROR_CLASS is concept specifies errors which can be occurs in code,
+    includes:
     
         - ERROR_SET
         - ERROR_CODE_SET correspond with ERROR_SET
@@ -110,6 +112,9 @@ TABLE OF CONTENTS
         - ERROR_SET, ERROR_CODE_SET, ERROR_CODE_NAME_SET and ERROR_STRING_SET:
           see "man errno"
         - ERROR_STRING_FN: see "man strerror"
+
+    ERROR_CLASS_ID is unsigned integer number which use to identify
+    ERROR_CLASS. That number is unique.
 
 07. CODE_CLASS
 ==============
@@ -134,14 +139,21 @@ TABLE OF CONTENTS
 
     EXTERNAL_ERROR_SET is set of EXTERNAL_ERROR.
 
-10. ERROR_STORAGE
-=================
+10. ERROR_STATE
+===============
 
-    It is a method which uses to store/retrieve last ERROR_CODE. For example:
+    It is data structure which uses to store ERROR_CLASS_ID and ERROR_CODE to
+    show that: "What is ERROR_CLASS?" and "What is ERROR?". For example:
 
-        - extern unsigned int liba_errno;
-        - extern __thread unsigned int liba_errno;
-        - errno macro, see "man errno"
+        // this is data type of ERROR_STATE
+        struct error_state
+        {
+            unsigned int cid;       // ERROR_CLASS_ID
+            unsigned int code;      // ERROR_CODE
+        };
+
+        // this is ERROR_STATE
+        struct error_state error_state;
         
 11. ERROR_SPACE
 ===============
@@ -150,36 +162,83 @@ TABLE OF CONTENTS
     
         - ERROR_CLASS
         - THREADING
-        - ERROR_STORAGE correspond with EXECUTION_UNIT
+        - ERROR_STATE in THREADING 
     
     Notation:
 
-        P = {ERROR_CLASS, EXECUTION_UNIT, ERROR_STORAGE}    
+        P = {ERROR_CLASS, THREADING, ERROR_STATE}    
 
     THREADING is thread in multi-threading concepts. For detail, see:
     https://en.wikipedia.org/wiki/Multithreading_(computer_architecture). If
     multi-threading is not used, consider that process contains one threading.
 
-    Each THREADING use one ERROR_SPACE. Where ERROR_CLASS is shared inside
-    CODE_CLASS, ERROR_STORAGE is local-THREADING and doesn't affect to other
-    THREADING. It guarantees that errors occurs in THREADING doesn't cause
-    mistake ot other THREADING.
+    Each THREADING use a ERROR_SPACE. ERROR_CLASS is same between theadings
+    because and ERROR_STATE is local-THREADING. It mean that ERROR_STATE
+    doesn't affect to other THREADING. It guarantees that errors occurs in
+    THREADING doesn't cause mistake to other THREADING.
 
-12. ERROR_RAISING, ERROR_CATCHING
-================================
+12. ERROR_RAISING, ERROR_CATCHING, ERROR_CLEARING
+=================================================
 
-    ERROR_RAISING is seting ERROR_STORAGE to specific ERROR_CODE to inform
-    that ERROR has occurs and can't handle. For example:
+    ERROR_RAISING is seting ERROR_STATE to specific ERROR_CLASS_ID and
+    ERROR_CODE to show:
     
-        liba_errno = 1
-        liba_errno = LIBA_ENOITEM 
+        - What is ERROR_CLASS?
+        - What is ERROR?
+        - That ERROR can't be handle
 
-    ERROR_CATCHING is checking ERROR_STORAGE to know ERROR has occurs or not
+    For example:
+    
+        error_state.cid = LIBA_ECID
+        error_state.code = LIBA_E001
+
+
+    ERROR_CATCHING is checking ERROR_CLASS_ID and ERROR_COD in ERROR_STATE to
+    get: 
+
+        - Did ERROR occur?
+        - What is ERROR_CLASS?
+        - What is Error?
+
     For example:
 
-        if (liba_errno != 0) {}
-        if (liba_errno != ESPACE_ENONE) {}
+        if (error_state.cid == LIBA_ECID) {
+            if (error_state.code == LIBA_E001) {
+                // do something
+            }
+        }
+
+    ERROR_CLEARING is set ERROR_CLASS_ID and ERROR_CODE in ERROR_STATE to
+    zero to show that no error occurs now. For example:
+
+        error_state.cid = 0;
+        error_state.code = 0;
+
+00. ERROR_RAISING_FN, ERROR_CLEARING_FN
+=======================================
+
+    ERROR_RAISING_FN is function which help raise ERROR more quickly. For
+    example:
+
+        // instead of do this
+        error_state.cid = LIBA_ECID
+        error_state.code = LIBA_E001
+
+        // this is more quickly
+        liba_raise(LIBA_E001)           // raise error with
+                                        // ERROR_CLASS: LIBA_ECID
+                                        // ERROR_CODE: LIBA_E001
  
+    ERROR_CLEARING_FN is function which help clear ERROR more quickly. For
+    example:
+
+        // instead of do this
+        error_state.cid = 0;
+        error_state.code = 0;
+
+        // this is more quickly
+        error_state_clear();            // cleare ERROR_STATE
+
 13. RULES
 =========
 
@@ -192,7 +251,7 @@ TABLE OF CONTENTS
         04. Set ERROR_CODE_NAME follow:
             ^([A-Z][A-Z0-9_]{1,7})_(E[A-Z0-9_]{1,7})$
         05. Set ERROR_STRING follow: ^.{1,32}$
-        06. Set ERROR_STORAGE to zero after handle ERROR
+        06. Clear ERROR_STATE after handle ERROR
         07. Function's specication must specifies ERROR
 
 14. RULE_1
@@ -221,7 +280,7 @@ TABLE OF CONTENTS
         
             fd = open(path, O_RDONLY);
             if (errno == ENOENT) {
-                liba_errno = ECONF_NOEXIST;     // don't do this
+                liba_raise(ECONF_NOEXIST)       // don't do this
                 return -1;
             }
             ...
@@ -235,12 +294,12 @@ TABLE OF CONTENTS
         
             fd = open(path, O_RDONLY);
             if (errno != 0)
-                return -1;      // inform caller that error has occur
+                return -1;      // just inform caller that error has occur
             ...
         }
 
 15. RULE_2
-==============================
+==========
 
     "Use minimal ERROR_CODE_SET".
 
@@ -277,12 +336,12 @@ TABLE OF CONTENTS
 
     GOOD_WAY:
 
-        #define LIBA_ENOITEM
+        #define LIBA_ENOITEM                        // just do this
 
         int htable_get(struct htable *t, const char *key, void **value)
         {
             if (/*key doesn't exist*/) {
-                liba_errno = LIBA_ENOITEM;          // use same ERROR_CODE
+                liba_raise(LIBA_ENOITEM);           // use same ERROR_CODE
                 return -1;
             }
             ...
@@ -291,7 +350,7 @@ TABLE OF CONTENTS
         int map_get(struct map *m, const char *key, void **vaule)
         {
             if (/*key doesn't exist*/) {
-                liba_errno = LIBA_ENOITEM;          // use same ERROR_CODE
+                liba_raise(LIBA_ENOITEM);           // use same ERROR_CODE
             }
         }
         
@@ -336,13 +395,44 @@ TABLE OF CONTENTS
         - "No such item"
         - "Data is invalid"
 
+20. RULE_6
+==========
 
-19. RULE_6
+    "Cleare ERROR_STATE after handle ERROR" to show that ERROR was
+    handle and no ERROR now. For example:
+
+    BAD_WAY:
+
+        int read_conf(const char *path) 
+        {
+            int fd;
+
+            fd = open(path, O_RDONLY);
+            if (fd < 0)
+                return DEFAULT_CONF;            // don't just do this
+            ...
+        }
+
+    GOOD_WAY:
+
+        int read_conf(const char *path) 
+        {
+            int fd;
+
+            fd = open(path, O_RDONLY);
+            if (fd < 0) {
+                error_state_clear();            // do this
+                return DEFAULT_CONF;            // and do this
+            }
+            ...
+        }
+
+19. RULE_7
 ==========
 
     "Function's specification ERROR, no matter where specication is locate".
 
-    That mean it must point:
+    That mean it must shows:
     
         - How to know error is occurs
         - What is ERROR may be occurs 
@@ -368,38 +458,6 @@ TABLE OF CONTENTS
         */
         int liba_fn1(void);
 
-20. RULE_7
-==========
-
-    "Set ERROR_STORAGE to zero after handle ERROR" to show that ERROR was
-    handle and no ERROR now. For example:
-
-    BAD_WAY:
-
-        int read_conf(const char *path) 
-        {
-            int fd;
-
-            fd = open(path, O_RDONLY);
-            if (fd < 0)
-                return DEFAULT_CONF;            // don't just do this
-            ...
-        }
-
-    GOOD_WAY:
-
-        int read_conf(const char *path) 
-        {
-            int fd;
-
-            fd = open(path, O_RDONLY);
-            if (fd < 0) {
-                errno = 0;                      // do this
-                return DEFAULT_CONF;
-            }
-            ...
-        }
-
 21. Define ERROR_SPACE
 ======================
 
@@ -410,10 +468,10 @@ TABLE OF CONTENTS
         - ERROR_CODE_NAME_SET
         - ERROR_STRING_SET
         - ERROR_STRING_FN
-        - ERROR_STORAGE 
+        - ERROR_STATE 
 
-    espace support to define ERROR_CLASS but it doesn't do any thing at all.
-    To define ERROR_CLASS, follow step:
+    espace supports to define ERROR_SPACE but it doesn't do any thing at all.
+    To define ERROR_SPACE, follow step:
 
         1. Understand EXTERNAL_ERROR_SET
         2. Pick name of CODE_CLASS to use as prefix of ERROR_CLASS
@@ -423,8 +481,8 @@ TABLE OF CONTENTS
         6. Detect ERROR_STRING_SET 
         7. Detect ERROR_CODE 
         8. Detect ERROR_STRING
-        9. Use macro ESPACE_DECLARE() to declare rest of ERROR_CLASS
-        19. Use macro ESPACE_DEFINE() to define rest of ERROR_CLASS
+        9. Use macro ESPACE_DECLARE() to declare rest of ERROR_SPACE
+        19. Use macro ESPACE_DEFINE() to define rest of ERROR_SPACE
         11. If it's not okey, goto step 1. If it's okey, break
 
     For example, done into step 7:
@@ -466,28 +524,31 @@ TABLE OF CONTENTS
     Then, it's able to handle error:
 
         // raise error
-        liba_errno = LIBA_ENOITEM
+        liba_raise(LIBA_ENOITEM)
 
         // catch error
-        if (liba_errno == LIBA_EDINVAL) {}
+        if (espace.cid == liba_ecid) {
+            if (espace.code == LIBA_ENOITEM)
+        }
 
         // retrieve ERROR_STRING from ERROR_CODE
         printf("error string=%s\n", liba_errstr(LIBA_ENOITEM))
 
-    ERROR_SPACE is auto create and auto access. For example:
+    ERROR_STATE is auto create and auto access when multi-threading is used.
+    For example:
 
         // entry of thread 1
         void * t1_entry(void *arg)
         {
-            liba_errno = LIBA_E001;     // access to ERROR_SPACE of thread 1
-            if (liba_errno != 0)        // also
+            liba_raise(LIBA_E001);  // it will not affect 
+                                    // to ERROR_STATE in thread 2
         }
 
         // entry of thread 2
         void * t2_entry(void *arg)
         {
-            liba_errno = LIBA_E002;     // access to ERROR_SPACE of thread 2
-            if (liba_errno != 0)        // also
+            liba_raise(LIBA_E001);  // it will not affect 
+                                    // to ERROR_STATE in thread 1
         }
 
         int main(int argc, char *argv[])

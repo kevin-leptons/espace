@@ -1,14 +1,3 @@
-/*
-DESCRIPTION
-
-    Show multi-thread error handling. ERROR_STORAGE is local thread
-    and it doen't affect to ERROR_STORAGE of other threads.
-
-AUTHORS
-
-    Kevin Leptons <kevin.leptons@gmail.com>
-*/
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
@@ -16,42 +5,23 @@ AUTHORS
 #include <errno.h>
 #include <string.h>
 
-#include <espace/error.h>
-
-// START: DECLARE_YOUR_ERROR_SPACE
-// Should put this block into header file
-
-// define ERROR_NOs imediately, no need to declare
-#define LIBA_E001 1
-#define LIBA_E002 2
-#define LIBA_E003 3
-
-// declare ERROR_STORAGE and STRING_ERROR_FN
-ESPACE_DECLARE(liba)
-
-// END: DECLARE_YOUR_ERROR_SPACE
- 
-// START: DEFINE_YOUR_ERROR_SPACE
-// Should put this block into source file
-
-// define array of STRING_ERRORs
-#define LIBA_ERRSTRS_SIZE 3
-const char * LIBA_ERRSTRS[LIBA_ERRSTRS_SIZE] = {
-    "1rt Error",
-    "2sd Error",
-    "3rd Error"
-};
-
-// define ERROR_STORAGE and STRING_ERROR_FN
-ESPACE_DEFINE(liba, LIBA_ERRSTRS, LIBA_ERRSTRS_SIZE)
-
-// END: DEFINE_YOUR_ERROR_SPACE
+#include <example/error.h>
 
 void * t1_entry(void *arg)
 {
-    liba_errno = LIBA_E001;
-    printf("thread 1, errno=%u, errstr=%s\n", liba_errno, 
-            liba_errstr(liba_errno));
+    liba_raise(LIBA_E001);
+    printf("thread 1, errno=%u, errstr=%s\n", espace.code, 
+            liba_errstr(espace.code));
+    printf("%p %p %p\n", (void *) liba_ecid, (void *) espace.cid, 
+            &liba_ecid);
+
+    if (espace.code != 0) {
+        if (espace.cid == liba_ecid)
+            printf("match\n");
+    }
+    espace_clear();
+    printf("thread 1, errno=%u, errstr=%s\n", espace.code, 
+            liba_errstr(espace.code));
 
     return NULL;
 }
@@ -61,8 +31,9 @@ void * t2_entry(void *arg)
     // wait for thread 1 set errno
     sleep(1);
     
-    printf("thread 2, errno=%u, errstr=%s\n", liba_errno, 
-            liba_errstr(liba_errno));
+    printf("thread 2, errno=%u, errstr=%s\n", espace.code, 
+            liba_errstr(espace.code));
+    espace_raise(liba_ecid, LIBA_E001);
 
     return NULL;
 }
