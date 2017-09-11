@@ -43,6 +43,7 @@ AUTHORS
 #define _ESPACE_ERROR_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifdef _REENTRANT
 #define ESPACE_THREAD_ATTR __thread
@@ -50,37 +51,27 @@ AUTHORS
 #define ESPACE_THREAD_ATTR
 #endif
 
-struct espace_estate
+#define ESPACE_CLEAN NULL
+
+struct espace_box
 {
-    uintptr_t cid;
-    uint32_t code;
+    const char * name;
 };
 
+struct espace_error
+{
+    const struct espace_box * const box;
+    const uint32_t code;
+    const char *str;
+};
 
-extern const char ESPACE_ERRSTR_UNKNOWN[];
-extern const char ESPACE_ERRSTR_NONE[];
-extern ESPACE_THREAD_ATTR struct espace_estate espace;
+extern const __thread struct espace_error * espace;
 
-void espace_raise(uintptr_t class_id, uint32_t code);
-void espace_clear(void);
-
-#define ESPACE_DECLARE(prefix) \
-    extern const uintptr_t prefix##_ecid; \
-    void prefix##_raise(uint32_t error_code); \
-    const char * prefix##_errstr(uint32_t code);
-
-#define ESPACE_DEFINE(prefix, errstrs, errstrs_size) \
-    const uintptr_t prefix##_ecid = (uintptr_t) &prefix##_ecid; \
-    inline void prefix##_raise(uint32_t error_code) { \
-        espace.cid = prefix##_ecid; \
-        espace.code = error_code; \
-    } \
-    const char * prefix##_errstr(uint32_t code) { \
-        if (code == 0) \
-            return ESPACE_ERRSTR_NONE; \
-        if (code > errstrs_size) \
-            return ESPACE_ERRSTR_UNKNOWN; \
-        return errstrs[code - 1]; \
-    }
+void espace_raise(const struct espace_error * state);
+void espace_clear();
+bool espace_isbox(const struct espace_box * box);
+bool espace_iserror(const struct espace_error * error);
+void espace_perror(const struct espace_error * error);
+void espace_pbox(const struct espace_box * box);
 
 #endif

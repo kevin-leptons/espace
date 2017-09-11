@@ -3,12 +3,12 @@
 
 #include <espace/error.h>
 
-// define ERROR_CODE_SET
-#define LIBA_E001 1
-#define LIBA_E002 2
-#define LIBA_E003 3
+// ERROR_BOX
+extern const struct espace_box * const LIBA_EBOX;
 
-// declare ERROR_STRING_FN, ERROR_RAISING_FN
-ESPACE_DECLARE(liba);
+// ERROR_SET
+extern const struct espace_error * const LIBA_E001;
+extern const struct espace_error * const LIBA_E002;
+extern const struct espace_error * const LIBA_E003;
 
 #endif

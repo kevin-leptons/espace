@@ -1,12 +1,29 @@
 #include <example/error.h>
 
-// define array of ERROR_STRING_SET
-#define LIBA_ERRSTRS_SIZE 3
-const char * LIBA_ERRSTRS[LIBA_ERRSTRS_SIZE] = {
-    "1rt Error",
-    "2sd Error",
-    "3rd Error"
+#include <stdlib.h>
+
+struct espace_box _LIBA_EBOX = 
+{
+    .name="liba"
 };
 
-// define ERROR_STRING_FN and ERROR_RAISING_FN
-ESPACE_DEFINE(liba, LIBA_ERRSTRS, LIBA_ERRSTRS_SIZE);
+const struct espace_box * const LIBA_EBOX = &_LIBA_EBOX;
+
+const struct espace_error * const LIBA_E001 = &(struct espace_error)
+{
+    .box = &_LIBA_EBOX, 
+    .code = 1, 
+    .str = "1rt Error"
+};
+const struct espace_error * const LIBA_E002 = &(struct espace_error)
+{
+    .box = &_LIBA_EBOX,
+    .code = 2,
+    .str = "2nd Error"
+};
+const struct espace_error * const LIBA_E003 = &(struct espace_error)
+{
+    .box = &_LIBA_EBOX,
+    .code = 3,
+    .str = "3rd Error"
+};

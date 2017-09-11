@@ -1,19 +1,34 @@
 #include <espace/error.h>
 
-const char ESPACE_ERRSTR_UNKNOWN[] = "Unkown Error";
-const char ESPACE_ERRSTR_NONE[] = "No Error";
+#include <stdio.h>
 
-ESPACE_THREAD_ATTR struct espace_estate espace = {0, 0};
+const __thread struct espace_error * espace = ESPACE_CLEAN;
 
-inline void espace_raise(uintptr_t class_id, uint32_t code)
+inline void espace_raise(const struct espace_error * error)
 {
-    espace.cid = class_id;
-    espace.code = code;
+    espace = error; 
+}
+inline void espace_clear()
+{
+    espace = ESPACE_CLEAN;
 }
 
-inline void espace_clear(void)
+inline bool espace_isbox(const struct espace_box * box)
 {
-    espace.cid = 0;
-    espace.code = 0;
+    return espace->box == box;
 }
 
+inline bool espace_iserror(const struct espace_error * error)
+{
+    return espace == error; 
+}
+
+inline void espace_perror(const struct espace_error * error)
+{
+    printf("%s: %08u - %s\n", error->box->name, error->code, error->str);
+}
+
+inline void espace_pbox(const struct espace_box * box)
+{
+    printf("%s\n", box->name);
+}
