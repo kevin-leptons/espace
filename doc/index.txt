@@ -17,23 +17,16 @@ TABLE OF CONTENTS
     00. ERROR_STATE
     00. ERROR_SPACE
     00. ERROR_RAISING, ERROR_CATCHING, ERROR_CLEARING
-    00. RULES
-    00. RULE_1
-    00. RULE_2
-    00. RULE_3
-    00. RULE_4
-    00. RULE_5
-    00. RULE_6
-    00. RULE_7
     00. ESPACE: Overview
     00. ESPACE: ERROR_DEFINITION
     00. ESPACE: ERROR_RAISING, ERROR_CATCHING, ERROR_CLEARING
-    00. Other ERROR_HANDLING Compatible
-    00. SYSTEM_ERROR_HANDLING Compatible 
+    00. ESPACE: ERROR_COMPATIBLE
+    00. ESPACE: SYSTEM_ERROR_COMPATIBLE
+    00. ESPACE: RULE_1
     00. Example
 
-01. ERROR, ERROR_SET
-====================
+00. ERROR
+=========
 
     ERROR is situations which cause function can not complete. For example:
 
@@ -41,9 +34,15 @@ TABLE OF CONTENTS
         - Allocate memory block when system memory is full...
         - ...
 
-    ERROR_SET is set of ERROR: E = {e1, e2, ..., en}
+00. ERROR_IDENTITY
+==================
+
+    It is information which use to identify ERROR. For example:
+
+        EPERM represents for ERROR which related with permission.
 
 02. ERROR_CODE, ERROR_CODE_SET
+
 ==============================
 
     ERROR_CODE is unsigned integer number which presents for ERROR. For
