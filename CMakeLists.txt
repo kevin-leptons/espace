@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(espace-project)
 
 # flags
-set(CMAKE_C_FLAGS "-std=gnu99 -Wall -g3 -lm -pthread")
+set(CMAKE_C_FLAGS "-std=gnu99 -Wall -pthread")
 
 # define
 add_definitions(-D_FILE_OFFSET_BITS=64)

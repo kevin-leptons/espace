@@ -37,8 +37,15 @@ ctl_build()
     mkdir -vp $DEST
     cd $DEST
 
+    local BUILD_FLAGS="-DCMAKE_BUILD_TYPE=Debug"
+    for opt in "$@"; do
+        if [ "$opt" = "--release" ]; then
+            BUILD_FLAGS="-DCMAKE_BUILD_TYPE=Release"
+        fi
+    done
+
     # use cmake, make to build
-    cmake ..
+    cmake "$BUILD_FLAGS" ..
     make
 
     # man page
@@ -50,10 +57,10 @@ ctl_build()
 
 ctl_dist()
 {
-    if [ ! -d $DEST ]; then
-        echo "Use 'ctl build' before 'ctl dist'"
-        exit 1
-    fi
+    ctl_clear
+    ctl_build --release
+
+    cd $ROOT
     rm -rf $DIST 
     mkdir -vp $DIST_PKG
     cp -r debian $DIST_PKG/DEBIAN
@@ -89,7 +96,7 @@ ctl_help()
 
 # parse arguments
 case "$1" in
-    build) ctl_build; exit 0;;
+    build) ctl_build "${@:2}"; exit 0;;
     dist) ctl_dist; exit 0;;
     clear) ctl_clear; exit 0;;
     -h) ctl_help; exit 0;;

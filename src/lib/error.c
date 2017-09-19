@@ -8,27 +8,32 @@ inline void espace_raise(const struct espace_error * error)
 {
     espace = error; 
 }
-inline void espace_clear()
+
+inline void espace_clear(void)
 {
     espace = ESPACE_CLEAN;
 }
 
-inline bool espace_isbox(const struct espace_box * box)
+inline bool espace_indomain(const struct espace_domain * domain)
 {
-    return espace->box == box;
+    return espace->domain == domain;
 }
 
-inline bool espace_iserror(const struct espace_error * error)
+inline bool espace_inerror(const struct espace_error * error)
 {
     return espace == error; 
 }
 
 inline void espace_perror(const struct espace_error * error)
 {
-    printf("%s: %08u - %s\n", error->box->name, error->code, error->str);
+    if (error == NULL)
+        printf("None\n");
+    else
+        printf("%s: %8u - %s\n", 
+                error->domain->name, error->code, error->str);
 }
 
-inline void espace_pbox(const struct espace_box * box)
+inline void espace_pdomain(const struct espace_domain * domain)
 {
-    printf("%s\n", box->name);
+    printf("%s\n", domain->name);
 }

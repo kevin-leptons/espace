@@ -3,12 +3,10 @@
 
 #include <espace/error.h>
 
-// ERROR_BOX
-extern const struct espace_box * const LIBA_EBOX;
-
-// ERROR_SET
-extern const struct espace_error * const LIBA_E001;
-extern const struct espace_error * const LIBA_E002;
-extern const struct espace_error * const LIBA_E003;
+ESPACE_DOMDEC(LIBA_DOME);
+ESPACE_ERRDEC(LIBA_E001);
+ESPACE_ERRDEC(LIBA_E002);
+ESPACE_ERRDEC(LIBA_E003);
+ESPACE_ERRDEC(LIBA_E004);
 
 #endif
