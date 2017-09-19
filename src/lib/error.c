@@ -2,7 +2,8 @@
 
 #include <stdio.h>
 
-const __thread struct espace_error * espace = ESPACE_CLEAN;
+ESPACE_ERRDEF(ESPACE_ENONE);
+const __thread struct espace_error * espace = &_ESPACE_ENONE;
 
 inline void espace_raise(const struct espace_error * error)
 {
@@ -11,29 +12,15 @@ inline void espace_raise(const struct espace_error * error)
 
 inline void espace_clear(void)
 {
-    espace = ESPACE_CLEAN;
+    espace = ESPACE_ENONE;
 }
 
-inline bool espace_indomain(const struct espace_domain * domain)
-{
-    return espace->domain == domain;
-}
-
-inline bool espace_inerror(const struct espace_error * error)
+inline bool espace_iserror(const struct espace_error * error)
 {
     return espace == error; 
 }
 
 inline void espace_perror(const struct espace_error * error)
 {
-    if (error == NULL)
-        printf("None\n");
-    else
-        printf("%s: %8u - %s\n", 
-                error->domain->name, error->code, error->str);
-}
-
-inline void espace_pdomain(const struct espace_domain * domain)
-{
-    printf("%s\n", domain->name);
+    printf("%s\n", error->name);
 }

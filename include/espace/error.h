@@ -51,7 +51,14 @@ AUTHORS
 #define ESPACE_THREAD_ATTR
 #endif
 
-#define ESPACE_CLEAN NULL
+#define ESPACE_ERRDEC(err_name) \
+    extern const struct espace_error * const err_name;
+
+#define ESPACE_ERRDEF(err_name) \
+    const struct espace_error _##err_name = { \
+        .name = #err_name \
+    }; \
+    const struct espace_error * const err_name = &_##err_name;
 
 struct espace_domain
 {
@@ -60,39 +67,14 @@ struct espace_domain
 
 struct espace_error
 {
-    const struct espace_domain * const domain;
-    const uint32_t code;
-    const char *str;
+    const char *name;
 };
 
+ESPACE_ERRDEC(ESPACE_ENONE);
 extern const __thread struct espace_error * espace;
-
 void espace_raise(const struct espace_error * state);
 void espace_clear(void);
-bool espace_indomain(const struct espace_domain * domain);
-bool espace_inerror(const struct espace_error * error);
+bool espace_iserror(const struct espace_error * error);
 void espace_perror(const struct espace_error * error);
-void espace_pdomain(const struct espace_domain * domain);
-
-//declare and define error domain
-#define ESPACE_DOMDEC(dom_symbol) \
-    const struct espace_domain * const dom_symbol;
-
-#define ESPACE_DOMDEF(dom_symbol, dom_name) \
-    const struct espace_domain _##dom_symbol = { \
-        .name = dom_name \
-    }; \
-    const struct espace_domain * const dom_symbol = &_##dom_symbol;
-
-// declare and define error
-#define ESPACE_ERRDEC(name) \
-    extern const struct espace_error * const name;
-
-#define ESPACE_ERRDEF(dmo_symbol, err_name, err_code, err_str) \
-    const struct espace_error * const err_name = &(struct espace_error) { \
-        .domain = &_##dmo_symbol, \
-        .code = err_code, \
-        .str = err_str \
-    };
 
 #endif
