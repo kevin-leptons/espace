@@ -3,9 +3,8 @@ project(espace-project)
 
 # flags
 set(CMAKE_C_FLAGS "-std=gnu99 -Wall -pthread")
-
-# define
-add_definitions(-D_FILE_OFFSET_BITS=64)
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 
 # setup build directory
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -16,5 +15,5 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 include_directories(include)
 add_subdirectory(include)
 
-# setup sub directory
+# setup implementation directory
 add_subdirectory(src)

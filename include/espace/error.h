@@ -52,6 +52,7 @@ AUTHORS
 #endif
 
 #define ESPACE_ERRDEC(err_name) \
+    extern const struct espace_error _##err_name; \
     extern const struct espace_error * const err_name;
 
 #define ESPACE_ERRDEF(err_name) \

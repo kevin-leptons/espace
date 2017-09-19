@@ -1,5 +1,4 @@
 #include <espace/error.h>
-
 #include <stdio.h>
 
 ESPACE_ERRDEF(ESPACE_ENONE);

@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 #include <espace/sys.h>
 
 #include <example/error.h>
@@ -14,7 +15,7 @@ int main(int argc, char *argv[])
     espace_perror(LIBA_E004);
     espace_perror(LIBA_E003);
 
-    espace_raise(SYS_EAGAIN);
+    sys_raise(EPERM);
     espace_perror(espace);
 
     espace_clear();
