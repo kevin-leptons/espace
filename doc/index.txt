@@ -5,9 +5,9 @@ OVERVIEW
     C language?". This is ESPACE's user manual. To understand that, look for:
     
         Sections 01 - 05: Related concepts
-        Sections 06 - 12: User manual for ESPACE 
-        Sections 13 - 15: Rules
-        Section 16: Example
+        Sections 06 - 14: User manual for ESPACE 
+        Sections 15 - 17: Rules
+        Section 18: Example
 
     Sept, 2017
     Kevin Leptons <kevin.leptons@gmail.com>
@@ -18,19 +18,21 @@ TABLE OF CONTENTS
     01. ERROR
     02. ERROR_IDENTITY, ERROR_IDENTITY_NAME
     03. ERROR_STATE
-    04. ERROR_RAISING, ERROR_CATCHING, ERROR_CLEARING
-    05. ERROR_SPACE
-    06. ESPACE: Overview
-    07. ESPACE: ERROR_STATE
-    08. ESPACE: ERROR_DEFINITION
-    09. ESPACE: ERROR_RAISING, ERROR_CATCHING, ERROR_CLEARING
-    10. ESPACE: Display ERROR
-    11. ESPACE: ERROR_COMPATIBLE
-    12. ESPACE: SYSTEM_ERROR_COMPATIBLE
-    13. ESPACE: RULE_1
-    14. ESPACE: RULE_2
-    15. ESPACE: RULE_3
-    16. Example
+    04. ERROR_RAISING, ERROR_CHECKING
+    05. ERROR_CATCHING, ERROR_CLEARING
+    06. ERROR_SPACE
+    07. ESPACE: Overview
+    08. ESPACE: ERROR_STATE
+    09. ESPACE: ERROR_DEFINITION
+    10. ESPACE: ERROR_RAISING, ERROR_CHECKING
+    11. ESPACE: ERROR_CATCHING, ERROR_CLEARING
+    12. ESPACE: Display ERROR
+    13. ESPACE: ERROR_COMPATIBLE
+    14. ESPACE: SYSTEM_ERROR_COMPATIBLE
+    15. ESPACE: RULE_1
+    16. ESPACE: RULE_2
+    17. ESPACE: RULE_3
+    18. Example
 
 01. ERROR
 =========
@@ -62,8 +64,8 @@ TABLE OF CONTENTS
         struct error_state error_state;     // error_state is ERROR_STATE
                                             // struct error_state is type
 
-04. ERROR_RAISING, ERROR_CATCHING, ERROR_CLEARING
-=================================================
+04. ERROR_RAISING, ERROR_CHECKING 
+=================================
 
     ERROR_RAISING is setting ERROR_STATE to a ERROR_IDENTITY to show:
     
@@ -74,14 +76,27 @@ TABLE OF CONTENTS
     
         error_state = LIBA_E001
 
+    ERROR_CHECKING is checking ERROR_STATE to know:
+
+        - Has ERROR occurs?
+
+    For example:
+
+        if (error_state != NULL) {
+            // if error has occur then do somthing
+        }
+
+05. ERROR_CATCHING, ERROR_CLEARING
+==================================
+
     ERROR_CATCHING is checking ERROR_STATE to know:
 
-        - What is ERROR occur? 
+        - Specific ERROR has occurs?
 
     For example:
 
         if (error_sate == LIBA_E001) {
-            // LIBA_E001 has been occur, do something
+            // if LIBA_E001 has been occur then do something
         }
 
     ERROR_CLEARING is setting ERROR_STATE to none-ERROR_IDENTITY.
@@ -90,7 +105,7 @@ TABLE OF CONTENTS
 
         error_sate = ENONE;
         
-05. ERROR_SPACE
+06. ERROR_SPACE
 ===============
 
     It is ERROR_STATE in THREADING. Notation:
@@ -102,10 +117,10 @@ TABLE OF CONTENTS
     multi-threading is not used, consider that process contains one threading.
 
     Each THREADING use a ERROR_STATE. It guarantees that ERROR_RAISING,
-    ERROR_CATCHING and ERROR_CLEARING in a THREADING doesn't cause mistake to
-    other THREADING.
+    ERROR_CHECKING, ERROR_CATCHING and ERROR_CLEARING in a THREADING doesn't
+    cause mistake to other THREADING.
 
-06. ESPACE: Overview
+07. ESPACE: Overview
 ====================
 
     ESPACE provides complete methods to define, raise, catch and clear ERROR.
@@ -120,7 +135,7 @@ TABLE OF CONTENTS
     worry about that, just use functions above. All of steps are show next
     sections.
 
-07. ESPACE: ERROR_STATE
+08. ESPACE: ERROR_STATE
 =======================
 
     ESPACE's ERROR_STATE is defined by "espace". It is global, thread-local
@@ -133,7 +148,7 @@ TABLE OF CONTENTS
         espace = LIBA_E001;                 // assign to ERROR_IDENTITY
         printf("Error: %s\n", espace->id);  // read ERROR_IDENTITY
 
-08. ESPACE: ERROR_DEFINITION
+09. ESPACE: ERROR_DEFINITION
 ============================
 
     ERROR_DEFINITION is:
@@ -160,12 +175,28 @@ TABLE OF CONTENTS
         LIBA_E002: Occurs when ....
         LIBA_E003: Occurs when ....
 
-09. ESPACE: ERROR_RAISING, ERROR_CATCHING, ERROR_CLEARING
-=========================================================
+10. ESPACE: ERROR_RAISING, ERROR_CHECKING
+=========================================
 
     ESPACE supports above actions in corresponding functions:
 
         - ERROR_RAISING: espace_raise()
+        - ERROR_CHECKING: espace_check()
+
+    For example:
+
+        #include <espace/error.h>
+
+        espace_raise(LIBA_E001);
+        if (espace_check()) {
+            // ERROR has occurs
+        }
+
+11. ESPACE: ERROR_CATCHING, ERROR_CLEARING
+==========================================
+
+    ESPACE support above actions in corresponding functions:
+
         - ERROR_CATCHING: espace_catch()
         - ERROR_CLEARING: espace_clear()
 
@@ -173,14 +204,13 @@ TABLE OF CONTENTS
 
         #include <espace/error.h>
 
-        espace_raise(LIBA_E001);
         if (espace_catch(LIBA_E001)) {
             // do something to handle
             // then clear ERROR
             espace_clear();
         }
 
-10. ESPACE: Display ERROR
+12. ESPACE: Display ERROR
 =========================
 
     espace_peror() display ERROR_IDENTITY to stderr. For example:
@@ -195,7 +225,7 @@ TABLE OF CONTENTS
         printf("Error: %s\b", espace->id);      // printf ERROR_IDENTITY_NAME
                                                 // of current ERROR
 
-11. ESPACE: ERROR_COMPATIBLE
+13. ESPACE: ERROR_COMPATIBLE
 ============================
 
     If your code use ESPACE to handle ERROR and some dependency libraries use
@@ -239,7 +269,7 @@ TABLE OF CONTENTS
             espace_clear();
         }
 
-12. ESPACE: SYSTEM_ERROR_COMPATIBLE
+14. ESPACE: SYSTEM_ERROR_COMPATIBLE
 ===================================
 
     ESPACE provides pre-defined System Error in <espace/sys.h> because System
@@ -266,7 +296,7 @@ TABLE OF CONTENTS
             espace_clear();
         }
 
-13. ESPACE: RULE_1
+15. ESPACE: RULE_1
 ==================
 
     Name ERROR_IDENTITY_NAME follow pattern:
@@ -289,7 +319,7 @@ TABLE OF CONTENTS
         _LIBA_E001
         _1LIBA_E001
 
-14. ESPACE: RULE_2
+16. ESPACE: RULE_2
 ==================
 
     "Define ERROR_IDENTITY for ERROR group which is same meaning."
@@ -312,7 +342,7 @@ TABLE OF CONTENTS
         ESPACE_ERRDEC(LIBA_EHTABLENOITEM);  // use this ERROR_IDENTITY for
                                             // ERROR case: 
                                             // not found item in hash table
-15. ESPACE: RULE_3
+17. ESPACE: RULE_3
 ==================
 
     "Clear ERROR_STATE after handling ERROR".
@@ -342,7 +372,7 @@ TABLE OF CONTENTS
         }
 
 
-16. Example
+18. Example
 ===========
 
     Example is install in </usr/share/doc/example> by structure:

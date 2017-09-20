@@ -13,7 +13,7 @@ FEATURES
     - Concepts related with Error Handling
     - Rules to define and handle Error
     - Shared variable to store last Error 
-    - APIs to raise, catch and clear Error
+    - APIs to raise, check, catch and clear Error
     - Other Error Handling compatible
     - Built-in System Error Handling compatible
 

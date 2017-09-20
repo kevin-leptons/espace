@@ -17,6 +17,7 @@ struct espace_error * espace;
 
 // functions
 void espace_raise(const struct espace_error * state);
+bool espace_check(void);
 bool espace_catch(const struct espace_error * error);
 void espace_clear(void);
 void espace_perror(const struct espace_error * error);
@@ -34,8 +35,11 @@ espace
 variable is ERROR_STATE.
 
 .B
-espace_raise(), espace_catch() and espace_clear() 
-is uses to raise, catch and clear ERROR_STATE. 
+espace_raise(), espace_check(), espace_catch()
+and 
+.B
+espace_clear() 
+are uses to raise, check, catch and clear ERROR_STATE. 
 
 .B
 espace_perror() 
@@ -45,7 +49,7 @@ For more detail about concepts and manual, see
 "/usr/share/doc/espace/index.txt".
 
 .SH EXAMPLES
-See /usr/share/doc/espace/example/*.c
+See /usr/share/doc/espace/example/**/*.c
 
 .SH FILES
 .TP 4
@@ -65,7 +69,7 @@ Manunal file.
 Document files.
 
 .TP
-/usr/share/doc/espace/example/*.c
+/usr/share/doc/espace/example/**/*.c
 Example files.
 
 .SH REFERENCES 

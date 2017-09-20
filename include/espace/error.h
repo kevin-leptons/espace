@@ -13,6 +13,7 @@ SYNOPSIS
 
     // functions
     void espace_raise(const struct espace_error * state);
+    bool espace_check(void);
     bool espace_catch(const struct espace_error * error);
     void espace_clear(void);
     void espace_perror(const struct espace_error * error);
@@ -24,8 +25,9 @@ DESCRIPTION
 
     espace variable is ERROR_STATE.
     
-    espace_raise(), espace_catch() espace_clear() is uses to raise, catch and
-    clear ERROR_STATE.
+    espace_raise(), espace_check(), espace_catch() espace_clear() are uses to
+    raise, check, catch and clear ERROR_STATE.
+
     espace_perror() is uses to print ERROR_IDENTITY_NAME to stderr.
 
     For more detail about concepts, see <doc/index.txt>
@@ -64,6 +66,7 @@ struct espace_error
 extern const ESPACE_THRDATTR struct espace_error * espace;
 void espace_raise(const struct espace_error * state);
 bool espace_catch(const struct espace_error * error);
+bool espace_check(void);
 void espace_clear(void);
 void espace_perror(const struct espace_error * error);
 

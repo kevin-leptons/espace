@@ -23,6 +23,11 @@ inline bool espace_catch(const struct espace_error * error)
     return espace == error; 
 }
 
+inline bool espace_check(void)
+{
+    return espace != ESPACE_ENONE;
+}
+
 inline void espace_perror(const struct espace_error * error)
 {
     if (error == NULL)
