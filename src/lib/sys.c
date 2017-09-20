@@ -278,7 +278,7 @@ const struct espace_error * const _SYS_ERR[_SYS_ERRSIZE] = {
 
 inline void sys_raise(int code)
 {
-    if (code <= 0 || code >= _SYS_ERRSIZE)
+    if (code <= 0 || code > _SYS_ERRSIZE)
         raise(SIGSEGV);
     else
         espace_raise(_SYS_ERR[code - 1]);
