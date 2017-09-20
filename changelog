@@ -1,5 +1,12 @@
 v0.1.0
 ======
 
-    - Add macro ESPACE_DECLARE() to declare error space
-    - Add macro ESPACE_DEFINE() to define error space
+	- Macro ESPACE_ERRDEC(): Declare ERROR
+	- Macro ESPACE_ERRDEF(): Define ERROR
+	- espace: ERROR_STATE
+	- espace_raise(): Raise ERROR
+	- espace_check(): Check ERROR
+	- espace_catch(): Catch ERROR
+	- espace_clear(): Clear ERROR
+	- espace_perro(): Print ERROR_IDENTITY to stderr
+	- sys_raise(): Raise System Error as ESPACE's ERROR
