@@ -11,9 +11,11 @@ FEATURES
 ========
 
     - Concepts related with Error Handling
-    - Rules to handle error
-    - Shared variable to store last error code
-    - Function convert error code into string
+    - Rules to define and handle Error
+    - Shared variable to store last Error 
+    - APIs to raise, catch and clear Error
+    - Other Error Handling compatible
+    - Built-in System Error Handling compatible
 
 USAGE
 =====
@@ -26,8 +28,17 @@ USAGE
     #include <espace/error.h>
 
     // macros
-    ESPACE_DECLARE(prefix)
-    ESPACE_DEFINE(prefix, errstrs, errstrs_size)
+    ESPACE_ERRDEC(err_name);
+    ESPACE_ERRDEF(err_name);
+
+    // global, thread-local variables
+    struct espace_error * espace;
+
+    // functions
+    void espace_raise(const struct espace_error * state);
+    bool espace_catch(const struct espace_error * error);
+    void espace_clear(void);
+    void espace_perror(const struct espace_error * error);
 
 BUILDING
 ========
@@ -38,11 +49,11 @@ BUILDING
     build from source code
     $ ./ctl build
 
-    pack into Debian package at dist/espace<version>_all.deb
+    pack into Debian package at dist/espace_<version>_all.deb
     $ ./ctl dist
 
     install to system by dpkg
-    $ dpkg -i dist/espace<version>_all.deb
+    $ dpkg -i dist/espace_<version>_all.deb
 
     clear all of build files
     $ ./ctl clear

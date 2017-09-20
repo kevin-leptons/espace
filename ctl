@@ -17,6 +17,7 @@
 set -e
 
 ROOT=$(realpath .)
+INC="$ROOT/include"
 SRC="$ROOT/src"
 DEST="$ROOT/dest"
 DEST_MAN="$DEST/man/espace.3.gz"
@@ -72,9 +73,16 @@ ctl_dist()
     mkdir -vp $DIST_PKG/usr/share/man/man3
     cp $DEST_MAN $DIST_PKG/usr/share/man/man3
 
-    local DIST_DOC_EX="$DIST_PKG/usr/share/doc/espace/example"
-    mkdir -vp $DIST_DOC_EX
-    cp $SRC/imp/example-*.c $DIST_DOC_EX/
+    local DIST_DOC="$DIST_PKG/usr/share/doc/espace"
+    local DIST_DOC_EXAM="$DIST_DOC/example"
+    mkdir -vp $DIST_DOC_EXAM 
+    mkdir -vp $DIST_DOC_EXAM/inc 
+    mkdir -vp $DIST_DOC_EXAM/lib
+    mkdir -vp $DIST_DOC_EXAM/src
+    cp $ROOT/doc/*.txt $DIST_DOC
+    cp $INC/example/*.h $DIST_DOC_EXAM/inc
+    cp $SRC/examlib/*.c $DIST_DOC_EXAM/lib
+    cp $SRC/example/*.c $DIST_DOC_EXAM/src
 
     cd $DIST
     dpkg-deb --build -D $DIST_PKG $DIST

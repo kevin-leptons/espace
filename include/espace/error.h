@@ -4,36 +4,32 @@ NAME
 
 SYNOPSIS
 
-    // variables
-    extern ESPACE_THREAD_ATTR struct espace_estate espace;
-
     // macros
-    ESPACE_DECLARE(prefix) 
-    ESPACE_DEFINE(prefix, errstrs, errstrs_size)
+    ESPACE_ERRDEC(err_name);
+    ESPACE_ERRDEF(err_name);
+
+    // global, thread-local variables
+    struct espace_error * espace;
 
     // functions
-    espace_raise(uintptr_t error_class, uint32_t code);
-    espace_clear();
+    void espace_raise(const struct espace_error * state);
+    bool espace_catch(const struct espace_error * error);
+    void espace_clear(void);
+    void espace_perror(const struct espace_error * error);
 
 DESCRIPTION
 
-    espace define error handling mechanism as a specification. It also
-    provides methods to do that. To handle errors follow espace, you need to
-    define:
+    ESPACE_ERRDEC() declares ERROR in header files.
+    ESPACE_ERRDEF() defines ERROR in source files.
 
-        - ERROR_SET
-        - ERROR_CODE_SET
-        - ERROR_CODE_NAME_SET
-        - ERROR_STRING_SET
+    espace variable is ERROR_STATE.
+    
+    espace_raise(), espace_catch() espace_clear() is uses to raise, catch and
+    clear ERROR_STATE.
+    espace_perror() is uses to print ERROR_IDENTITY_NAME to stderr.
 
-    Next, espace will help you define:
-
-        - ERROR_STRING_FN
-        - ERROR_RAISING_FN
-
-    Then you can handle errors by defined APIs. For more detail about concepts
-    and manual, see "doc/index.txt". 
-
+    For more detail about concepts, see <doc/index.txt>
+    
 AUTHORS
 
     Kevin Leptons <kevin.leptons@gmail.com>
@@ -46,36 +42,29 @@ AUTHORS
 #include <stdbool.h>
 
 #ifdef _REENTRANT
-#define ESPACE_THREAD_ATTR __thread
+#define ESPACE_THRDATTR __thread
 #else
-#define ESPACE_THREAD_ATTR
+#define ESPACE_THRDATTR
 #endif
 
 #define ESPACE_ERRDEC(err_name) \
-    extern const struct espace_error _##err_name; \
     extern const struct espace_error * const err_name;
 
 #define ESPACE_ERRDEF(err_name) \
     const struct espace_error _##err_name = { \
-        .name = #err_name \
+        .id = #err_name \
     }; \
     const struct espace_error * const err_name = &_##err_name;
 
-struct espace_domain
-{
-    const char * name;
-};
-
 struct espace_error
 {
-    const char *name;
+    const char *id;
 };
 
-ESPACE_ERRDEC(ESPACE_ENONE);
-extern const __thread struct espace_error * espace;
+extern const ESPACE_THRDATTR struct espace_error * espace;
 void espace_raise(const struct espace_error * state);
+bool espace_catch(const struct espace_error * error);
 void espace_clear(void);
-bool espace_iserror(const struct espace_error * error);
 void espace_perror(const struct espace_error * error);
 
 #endif

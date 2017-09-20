@@ -1,8 +1,6 @@
 #include <example/error.h>
 
-#include <stdlib.h>
-
-ESPACE_ERRDEF(LIBA_E001);
+ESPACE_ERRDEF(LIBA_E001);               // define ERROR
 ESPACE_ERRDEF(LIBA_E002);
 ESPACE_ERRDEF(LIBA_E003);
 ESPACE_ERRDEF(LIBA_E004);

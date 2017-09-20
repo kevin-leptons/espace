@@ -1,14 +1,23 @@
 /*
 SYNOPSIS
 
+    // variables
+    SYS_EPERM
+    SYS_ENOENT
+    SYS_ESRCH
+    ...
+
+    // functions
     void sys_raise(int code);
 
 DESCRIPTION
 
-    Linux system error from:
+    Variables is ERROR_IDENTITY correspond with 133 System Erro in two files:
 
         <asm-generic/errno-base.h> 
         <asm-generic/errno.h>
+
+    sys_raise() raise ESPACE's ERROR from System Error number.
 
 AUTHORS
 

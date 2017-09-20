@@ -1,5 +1,6 @@
 #include <espace/sys.h>
 #include <stdlib.h>
+#include <signal.h>
 
 #define _SYS_ERRDEF(err_name) ESPACE_ERRDEF(SYS_##err_name)
 #define _SYS_ERRREF(err_name) &_SYS_##err_name
@@ -138,9 +139,8 @@ _SYS_ERRDEF(ENOTRECOVERABLE)
 _SYS_ERRDEF(ERFKILL)
 _SYS_ERRDEF(EHWPOISON)
 
-#define _SYS_ERRSIZE 135
+#define _SYS_ERRSIZE 133
 const struct espace_error * const _SYS_ERR[_SYS_ERRSIZE] = {
-    &_ESPACE_ENONE,
     _SYS_ERRREF(EPERM),
     _SYS_ERRREF(ENOENT),
     _SYS_ERRREF(ESRCH),
@@ -276,7 +276,10 @@ const struct espace_error * const _SYS_ERR[_SYS_ERRSIZE] = {
     _SYS_ERRREF(EHWPOISON)
 };
 
-void sys_raise(int code)
+inline void sys_raise(int code)
 {
-    espace_raise(_SYS_ERR[code]);
+    if (code <= 0 || code >= _SYS_ERRSIZE)
+        raise(SIGSEGV);
+    else
+        espace_raise(_SYS_ERR[code - 1]);
 }

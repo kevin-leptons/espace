@@ -1,31 +1,38 @@
 OVERVIEW
 ========
 
-    espace define and support to deal with problem: "How to handle errors in C
-    language?". This is specification of espace. To understand that, look for:
+    ESPACE defines and supports to deal with problem: "How to handle errors in
+    C language?". This is ESPACE's user manual. To understand that, look for:
     
-        Sections 01 - 12: Related concepts
-        Sections 13 - 20: Rules of espace
-        Section 21: Define and use ERROR_SPACE
-        Section 22: Example
+        Sections 01 - 05: Related concepts
+        Sections 06 - 12: User manual for ESPACE 
+        Sections 13 - 15: Rules
+        Section 16: Example
+
+    Sept, 2017
+    Kevin Leptons <kevin.leptons@gmail.com>
 
 TABLE OF CONTENTS
 =================
 
-    00. ERROR
-    00. ERROR_IDENTITY
-    00. ERROR_STATE
-    00. ERROR_SPACE
-    00. ERROR_RAISING, ERROR_CATCHING, ERROR_CLEARING
-    00. ESPACE: Overview
-    00. ESPACE: ERROR_DEFINITION
-    00. ESPACE: ERROR_RAISING, ERROR_CATCHING, ERROR_CLEARING
-    00. ESPACE: ERROR_COMPATIBLE
-    00. ESPACE: SYSTEM_ERROR_COMPATIBLE
-    00. ESPACE: RULE_1
-    00. Example
+    01. ERROR
+    02. ERROR_IDENTITY, ERROR_IDENTITY_NAME
+    03. ERROR_STATE
+    04. ERROR_RAISING, ERROR_CATCHING, ERROR_CLEARING
+    05. ERROR_SPACE
+    06. ESPACE: Overview
+    07. ESPACE: ERROR_STATE
+    08. ESPACE: ERROR_DEFINITION
+    09. ESPACE: ERROR_RAISING, ERROR_CATCHING, ERROR_CLEARING
+    10. ESPACE: Display ERROR
+    11. ESPACE: ERROR_COMPATIBLE
+    12. ESPACE: SYSTEM_ERROR_COMPATIBLE
+    13. ESPACE: RULE_1
+    14. ESPACE: RULE_2
+    15. ESPACE: RULE_3
+    16. Example
 
-00. ERROR
+01. ERROR
 =========
 
     ERROR is situations which cause function can not complete. For example:
@@ -34,531 +41,327 @@ TABLE OF CONTENTS
         - Allocate memory block when system memory is full...
         - ...
 
-00. ERROR_IDENTITY
-==================
+02. ERROR_IDENTITY, ERROR_IDENTITY_NAME
+=======================================
 
-    It is information which use to identify ERROR. For example:
+    ERROR_IDENTITY is unique information presents for ERROR. 
+    ERROR_IDENTITY_NAME also is unique information presents for ERROR, but it
+    is easy to read than ERROR_IDENTITY. For example, Linux Error defnition
+    in file <asm-generic/errno-base.h>:
 
-        EPERM represents for ERROR which related with permission.
+        #define EPERM 1     // Operation not permitted
 
-02. ERROR_CODE, ERROR_CODE_SET
+    "EPERM" is ERROR_IDENTITY_NAME, "1" is ERROR_IDENTITY.
 
-==============================
+03. ERROR_STATE
+===============
 
-    ERROR_CODE is unsigned integer number which presents for ERROR. For
-    example:
+    It is data storage which uses to store ERROR_IDENTITY to
+    show "What is ERROR occurs?". For example:
 
-        1, 2, 3, ... 
+        struct error_state error_state;     // error_state is ERROR_STATE
+                                            // struct error_state is type
 
-    ERROR_CODE_SET is set of ERROR_CODE: C = {c1, c2, ..., cn}
+04. ERROR_RAISING, ERROR_CATCHING, ERROR_CLEARING
+=================================================
 
-03. ERROR_CODE_NAME, ERROR_CODE_NAME_SET
-========================================
+    ERROR_RAISING is setting ERROR_STATE to a ERROR_IDENTITY to show:
+    
+        - What is ERROR occurs?
+        - That ERROR can't be handle by current function
 
-    ERROR_CODE_NAME is string which presents for ERROR_CODE. For example:
+    For example:
+    
+        error_state = LIBA_E001
 
-        LIBA_EDINVAL
-        LIBA_ENOITEM
-        ...
+    ERROR_CATCHING is checking ERROR_STATE to know:
 
-    ERROR_CODE_NAME_SET is set of ERROR_CODE_NAME:
+        - What is ERROR occur? 
 
-        M = {m1, m2, ..., mn}
-
-04. ERROR_STRING, ERROR_STRING_SET
-==================================
-
-    ERROR_STRING is string which summary ERROR for ERROR_CODE. For example:
-
-        - Out of memory
-        - No such item
-        - ...
-
-    ERROR_STRING_SET is set of ERROR_STRING: S = {s1, s2, ..., sn}
-
-05. ERROR_STRING_FN
-===================
-
-    It is function which returns ERROR_STRING correspond with ERROR_CODE.
     For example:
 
-        const char * liba_errstr(unsigned int code);
+        if (error_sate == LIBA_E001) {
+            // LIBA_E001 has been occur, do something
+        }
 
-06. ERROR_CLASS, ERROR_CLASS_ID
-===============================
+    ERROR_CLEARING is setting ERROR_STATE to none-ERROR_IDENTITY.
+    non-ERROR_IDENTITY is special ERROR_IDENTITY, that mean is no ERROR
+    occurs. For example:
 
-    ERROR_CLASS is concept specifies errors which can be occurs in code,
-    includes:
-    
-        - ERROR_SET
-        - ERROR_CODE_SET correspond with ERROR_SET
-        - ERROR_CODE_NAME_SET correspond with ERROR_CODE_SET
-        - ERROR_STRING_SET correspond with ERROR_CODE_SET 
-        - ERROR_STRING_FN of ERROR_CODE_SET and ERROR_STRING_SET
-
-    Notation:
-
-        L = {ERROR_SET, ERROR_CODE_SET, ERROR_CODE_NAME_SET,
-             ERROR_STRING_SET, ERROR_STRING_FN}
-
-    For example, error handling in SUS - Single UNIX Specification, called
-    SUS ERROR_CLASS:
-
-        - ERROR_SET, ERROR_CODE_SET, ERROR_CODE_NAME_SET and ERROR_STRING_SET:
-          see "man errno"
-        - ERROR_STRING_FN: see "man strerror"
-
-    ERROR_CLASS_ID is unsigned integer number which use to identify
-    ERROR_CLASS. That number is unique.
-
-07. CODE_CLASS
-==============
-
-    It is code which can be uses the same ERROR_CLASS. Code may be is
-    single-project, related-project or set of many project. For example,
-    Linux kernel is CODE_CLASS, it includes many parts of code and uses only
-    SUS ERROR_CLASS.
-
-08. INTERNAL_ERROR, EXTERNAL_ERROR
-==================================
-
-    That is relative concepts. If you stay in CODE_CLASS called A:
-
-        - INTERNAL_ERROR is ERROR in ERROR_CLASS of A
-        - EXTERNAL_ERROR is ERROR in ERROR_CLASS which is not ERROR_CLASS of A
-
-09. INTERNAL_ERROR_SET, EXTERNAL_ERROR_SET
-==========================================
-
-    INTERNAL_ERROR_SET is set of INTERNAL_ERROR.
-
-    EXTERNAL_ERROR_SET is set of EXTERNAL_ERROR.
-
-10. ERROR_STATE
-===============
-
-    It is data structure which uses to store ERROR_CLASS_ID and ERROR_CODE to
-    show that: "What is ERROR_CLASS?" and "What is ERROR?". For example:
-
-        // this is data type of ERROR_STATE
-        struct error_state
-        {
-            unsigned int cid;       // ERROR_CLASS_ID
-            unsigned int code;      // ERROR_CODE
-        };
-
-        // this is ERROR_STATE
-        struct error_state error_state;
+        error_sate = ENONE;
         
-11. ERROR_SPACE
+05. ERROR_SPACE
 ===============
 
-    It is concept includes:
-    
-        - ERROR_CLASS
-        - THREADING
-        - ERROR_STATE in THREADING 
-    
-    Notation:
+    It is ERROR_STATE in THREADING. Notation:
 
-        P = {ERROR_CLASS, THREADING, ERROR_STATE}    
+        P = {THREADING, ERROR_STATE}    
 
-    THREADING is thread in multi-threading concepts. For detail, see:
+    THREADING is multi-threading concept. For detail, see:
     https://en.wikipedia.org/wiki/Multithreading_(computer_architecture). If
     multi-threading is not used, consider that process contains one threading.
 
-    Each THREADING use a ERROR_SPACE. ERROR_CLASS is same between theadings
-    because and ERROR_STATE is local-THREADING. It mean that ERROR_STATE
-    doesn't affect to other THREADING. It guarantees that errors occurs in
-    THREADING doesn't cause mistake to other THREADING.
+    Each THREADING use a ERROR_STATE. It guarantees that ERROR_RAISING,
+    ERROR_CATCHING and ERROR_CLEARING in a THREADING doesn't cause mistake to
+    other THREADING.
 
-12. ERROR_RAISING, ERROR_CATCHING, ERROR_CLEARING
-=================================================
+06. ESPACE: Overview
+====================
 
-    ERROR_RAISING is seting ERROR_STATE to specific ERROR_CLASS_ID and
-    ERROR_CODE to show:
+    ESPACE provides complete methods to define, raise, catch and clear ERROR.
+    Here is work flow which is you need to do to use ESPACE:
+
+        - Declare ERROR in header file by ESPACE_ERRDEC() macro
+        - Define ERROR in source file by ESPCE_ERRDEF() macro
+        - Use functions: espace_raise(), espace_iserror(), espace_clear()
+          to raise, catch or clear ERROR
     
-        - What is ERROR_CLASS?
-        - What is ERROR?
-        - That ERROR can't be handle
+    ERROR_STATE is pre-defined and auto-creating for each THREADING, don't
+    worry about that, just use functions above. All of steps are show next
+    sections.
+
+07. ESPACE: ERROR_STATE
+=======================
+
+    ESPACE's ERROR_STATE is defined by "espace". It is global, thread-local
+    variable:
+
+        struct espace_error * espace;
+    
+    That variable can be access directly, For example:
+
+        espace = LIBA_E001;                 // assign to ERROR_IDENTITY
+        printf("Error: %s\n", espace->id);  // read ERROR_IDENTITY
+
+08. ESPACE: ERROR_DEFINITION
+============================
+
+    ERROR_DEFINITION is:
+    
+        - Define ERROR_IDENTITY and corresponding ERROR_IDENTITY_NAME
+        - Describe ERROR_IDENTITY in documents
 
     For example:
-    
-        error_state.cid = LIBA_ECID
-        error_state.code = LIBA_E001
 
+        // header file
+        #inlcude <espace/error.h>
 
-    ERROR_CATCHING is checking ERROR_CLASS_ID and ERROR_COD in ERROR_STATE to
-    get: 
+        ESPACE_ERRDEC(LIBA_E001);
+        ESPACE_ERRDEC(LIBA_E002);
+        ESPACE_ERRDEC(LIBA_E003);
 
-        - Did ERROR occur?
-        - What is ERROR_CLASS?
-        - What is Error?
+        // source file
+        ESPACE_ERRDEF(LIBA_E001)
+        ESPACE_ERRDEF(LIBA_E002)
+        ESPACE_ERRDEF(LIBA_E003)
+
+        // documents
+        LIBA_E001: Occurs when ....
+        LIBA_E002: Occurs when ....
+        LIBA_E003: Occurs when ....
+
+09. ESPACE: ERROR_RAISING, ERROR_CATCHING, ERROR_CLEARING
+=========================================================
+
+    ESPACE supports above actions in corresponding functions:
+
+        - ERROR_RAISING: espace_raise()
+        - ERROR_CATCHING: espace_catch()
+        - ERROR_CLEARING: espace_clear()
 
     For example:
 
-        if (error_state.cid == LIBA_ECID) {
-            if (error_state.code == LIBA_E001) {
-                // do something
-            }
-        }
-
-    ERROR_CLEARING is set ERROR_CLASS_ID and ERROR_CODE in ERROR_STATE to
-    zero to show that no error occurs now. For example:
-
-        error_state.cid = 0;
-        error_state.code = 0;
-
-00. ERROR_RAISING_FN, ERROR_CLEARING_FN
-=======================================
-
-    ERROR_RAISING_FN is function which help raise ERROR more quickly. For
-    example:
-
-        // instead of do this
-        error_state.cid = LIBA_ECID
-        error_state.code = LIBA_E001
-
-        // this is more quickly
-        liba_raise(LIBA_E001)           // raise error with
-                                        // ERROR_CLASS: LIBA_ECID
-                                        // ERROR_CODE: LIBA_E001
- 
-    ERROR_CLEARING_FN is function which help clear ERROR more quickly. For
-    example:
-
-        // instead of do this
-        error_state.cid = 0;
-        error_state.code = 0;
-
-        // this is more quickly
-        error_state_clear();            // cleare ERROR_STATE
-
-13. RULES
-=========
-
-    Before are concepts to explain Error Handling. Here are rules of espace
-    and it will be explain in next sections:
-
-        01. Don't re-define EXTERNAL_ERROR as INTERNAL_ERROR
-        02. Use minimal ERROR_CODE_SET
-        03. Use sequence ERROR_CODE_SET
-        04. Set ERROR_CODE_NAME follow:
-            ^([A-Z][A-Z0-9_]{1,7})_(E[A-Z0-9_]{1,7})$
-        05. Set ERROR_STRING follow: ^.{1,32}$
-        06. Clear ERROR_STATE after handle ERROR
-        07. Function's specication must specifies ERROR
-
-14. RULE_1
-==========
-
-    "Don't re-define EXTERNAL_ERROR as INTERNAL_ERROR".
-
-    Don't re-define INTERNAL_ERROR with same meaning of EXTERNAL_ERROR. For
-    example:
-
-        - In function which read configuration file:
-          read_conf(const char *path);
-        - Pass non-exist path into that function
-        - Use open() to open that file and receive ENOENT
-        - Don't raise define ECONF_NOEXIST - Configuration file is not exist
-          and raise it, just return -1 to inform caller that function is
-          failed and allow caller to catch ERROR then handle them.
-
-    BAD_WAY:
-
-        #define ECONF_NOEXIST 1                 // don't do this
-
-        int read_conf(const char *path)
-        {
-            int fd;
-        
-            fd = open(path, O_RDONLY);
-            if (errno == ENOENT) {
-                liba_raise(ECONF_NOEXIST)       // don't do this
-                return -1;
-            }
-            ...
-        }
-
-    GOOD_WAY:
-        
-        int read_conf(const char *path)
-        {
-            int fd;
-        
-            fd = open(path, O_RDONLY);
-            if (errno != 0)
-                return -1;      // just inform caller that error has occur
-            ...
-        }
-
-15. RULE_2
-==========
-
-    "Use minimal ERROR_CODE_SET".
-
-    Specify minimal ERROR_CODE_SET, use same ERROR_CODE for similar ERROR. For
-    example, two functions below should uses LIBA_ENOITEM instead of
-    {LIBA_EHTABLENOITEM, LIBA_EMAPNOITEM}:
-
-        // retrieve value from key in hash table
-        int htable_get(struct htable *t, const char *key, void **value);
-
-        // retrieve value from key in map
-        int map_get(struct map *m, const char *key, void **vaule);
-
-    BAD_WAY:
-
-        #define LIBA_EHTABLENOITEM 1    // don't do this
-        #define LIBA_EMAPNOITEM 2       // don't do this
-
-        int htable_get(struct htable *t, const char *key, void **value)
-        {
-            if (/*key doesn't exist*/) {
-                liba_errno = LIBA_EHTABLENOITEM;    // dont' do this
-                return -1;
-            }
-            ...
-        }
-        
-        int map_get(struct map *m, const char *key, void **vaule)
-        {
-            if (/*key doesn't exist*/) {
-                liba_errno = LIBA_EMAPNOITEM;       // don't do this
-            }
-        }
-
-    GOOD_WAY:
-
-        #define LIBA_ENOITEM                        // just do this
-
-        int htable_get(struct htable *t, const char *key, void **value)
-        {
-            if (/*key doesn't exist*/) {
-                liba_raise(LIBA_ENOITEM);           // use same ERROR_CODE
-                return -1;
-            }
-            ...
-        }
-        
-        int map_get(struct map *m, const char *key, void **vaule)
-        {
-            if (/*key doesn't exist*/) {
-                liba_raise(LIBA_ENOITEM);           // use same ERROR_CODE
-            }
-        }
-        
-16. RULE_3
-==========
-
-    "Use sequence ERROR_CODE_SET".
-
-    ERROR_CODE must start from 1 and increase by 1.
-
-    BAD_WAY:
-
-        E = {1, 2, 7, 8, 9, 10}                 // missing {3, 4, 5, 6}
-
-    GOOD_WAY:
-
-        E = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}     // continuous from 1 to 10
-
-17. RULE_4
-==========
-
-    "Set ERROR_CODE_NAME follow: ^([A-Z][A-Z0-9_]{1,7})_(E[A-Z0-9_]{1,7})$". 
-    First block is name of CODE_CLASS. Second block is very short string
-    specifies ERROR.
-
-    BAD_WAY:
-
-        liba_ENOITEM
-        LIBA_enoitem 
-        LIBA_NO_ITEM
-
-    GOOD_WAY:
-
-        LIBA_ENOITEM
-        LIBA_EDINVAL
-
-18. RULE_5
-==========
-
-    "Set ERROR_STRING follow: ^.{1,32}$". For example:
-
-        - "No such item"
-        - "Data is invalid"
-
-20. RULE_6
-==========
-
-    "Cleare ERROR_STATE after handle ERROR" to show that ERROR was
-    handle and no ERROR now. For example:
-
-    BAD_WAY:
-
-        int read_conf(const char *path) 
-        {
-            int fd;
-
-            fd = open(path, O_RDONLY);
-            if (fd < 0)
-                return DEFAULT_CONF;            // don't just do this
-            ...
-        }
-
-    GOOD_WAY:
-
-        int read_conf(const char *path) 
-        {
-            int fd;
-
-            fd = open(path, O_RDONLY);
-            if (fd < 0) {
-                error_state_clear();            // do this
-                return DEFAULT_CONF;            // and do this
-            }
-            ...
-        }
-
-19. RULE_7
-==========
-
-    "Function's specification ERROR, no matter where specication is locate".
-
-    That mean it must shows:
-    
-        - How to know error is occurs
-        - What is ERROR may be occurs 
-        
-    For example, specication of liba_fn1:
-
-        /*
-        RETURNS
-
-            On success, return 0. On failed, return -1.
-
-        INTERNAL ERRORS - liba_errno will be set to:
-
-            LIBA_EDINVAL ...
-            LIBA_ENOITEM ...
-            ...
-
-        EXTERNAL ERRORS - libb_errno will be set to:
-
-            LIBB_E001 ...
-            LIBB_E002 ...
-        ...
-        */
-        int liba_fn1(void);
-
-21. Define ERROR_SPACE
-======================
-
-    Define ERROR_CLASS mean that define it's components, includes:
-
-        - ERROR_SET
-        - ERROR_CODE_SET
-        - ERROR_CODE_NAME_SET
-        - ERROR_STRING_SET
-        - ERROR_STRING_FN
-        - ERROR_STATE 
-
-    espace supports to define ERROR_SPACE but it doesn't do any thing at all.
-    To define ERROR_SPACE, follow step:
-
-        1. Understand EXTERNAL_ERROR_SET
-        2. Pick name of CODE_CLASS to use as prefix of ERROR_CLASS
-        3. Design draft APIs of CODE_CLASS
-        4. Detect ERROR_SET, know as INTERNAL_ERROR_SET
-        5. Detect ERROR_CODE_NAME_SET
-        6. Detect ERROR_STRING_SET 
-        7. Detect ERROR_CODE 
-        8. Detect ERROR_STRING
-        9. Use macro ESPACE_DECLARE() to declare rest of ERROR_SPACE
-        19. Use macro ESPACE_DEFINE() to define rest of ERROR_SPACE
-        11. If it's not okey, goto step 1. If it's okey, break
-
-    For example, done into step 7:
-
-        ERROR_CODE_NAME     ERROR_STRING        Description            
-        ------------------------------------------------------
-        LIBA_E001           Error 001           ...
-        LIBA_E002           Error 002A          ...
-        LIBA_ENOITEM        No such item        ...
-        LIBA_EDINVAL        Data is invalid     ...
-
-    Declare ERROR_SPACE in file 'liba/error.h':
-        
         #include <espace/error.h>
 
-        // declare, define ERROR_CODE_NAME_SET and ERROR_CODE_SET
-        #define LIBA_E001 1
-        #define LIBA_E002 2
-        #define LIBA_ENOITEM 3
-        #define LIBA_EDINVAL 4
-
-        // declare ERROR_STORAGE, ERROR_STRING_FN by espace macro
-        ESPACE_DECLARE(liba)
-
-    Define ERROR_SPACE in file 'liba/error.c':
-
-        // define array of ERROR_STRING which indexed by ERROR_CODE
-        #define LIBA_ERRSTRS_SIZE 4
-        const char * LIBA_ERRSTRS[LIBA_ERRSTRS_SIZE] = {
-            "Error 001",                // correspond with LIBA_E001
-            "Error 002",                // correspond with LIBA_E002
-            "No such item",             // correspond with LIBA_ENOITEM
-            "Data is invalid"           // correspond with LIBA_EDINVAL
+        espace_raise(LIBA_E001);
+        if (espace_catch(LIBA_E001)) {
+            // do something to handle
+            // then clear ERROR
+            espace_clear();
         }
 
-        // define ERROR_STORAGE, ERROR_STRING_FN by espace macro
-        ESPACE_DEFINE(liba, LIBA_ERRSTRS, LIBA_ERRSTRS_SIZE)
+10. ESPACE: Display ERROR
+=========================
 
-    Then, it's able to handle error:
+    espace_peror() display ERROR_IDENTITY to stderr. For example:
 
-        // raise error
-        liba_raise(LIBA_ENOITEM)
+        espace_peror(LIBA_E001);                // ouput is "LIBA_E001"
 
-        // catch error
-        if (espace.cid == liba_ecid) {
-            if (espace.code == LIBA_ENOITEM)
+    Use "name" property of ERROR for flexible ouput format. For example:
+
+        printf("Error: %s\n", LIBA_E001->id);   // print ERROR_IDENTITY_NAME
+                                                // of LIBA_E001
+
+        printf("Error: %s\b", espace->id);      // printf ERROR_IDENTITY_NAME
+                                                // of current ERROR
+
+11. ESPACE: ERROR_COMPATIBLE
+============================
+
+    If your code use ESPACE to handle ERROR and some dependency libraries use
+    other methods than ESPACE to handle ERROR then you need a solution.
+    Simple solution is define ESPACE's ERROR base on original ERROR of that
+    libraries. For example:
+
+        // original error
+        #define EPERM 1
+
+        // ESPACE's ERROR in header file
+        #include <espace/error.h>
+        ESPACE_ERRDEC(SYS_EPERM)
+        void sys_raise(int errnum);
+
+        // ESPACE's ERROR in source file
+        #include <signal.h>
+        
+        ESPACE_ERRDEF(SYS_EPERM)
+        #define SYS_ERRSIZE 1
+        const struct espace_error * const SYS_ERR[SYS_ERRSIZE] = {
+            &_SYS_EPERM
+        };
+        inline void sys_raise(int errnum) {
+            if (errnum <= || errnum >= SYS_ERRSIZE)
+                raise(SIGSEGV);
+            else
+                return SYS_ERR[errnum - 1];
         }
 
-        // retrieve ERROR_STRING from ERROR_CODE
-        printf("error string=%s\n", liba_errstr(LIBA_ENOITEM))
+    Then, if you need to raise error, catch or clear:
 
-    ERROR_STATE is auto create and auto access when multi-threading is used.
+        // catch system error and raise as ESPACE's error
+        if (errno != 0)
+            sys_raise(errno);
+
+        // catch ESPACE's somewhere
+        if (espace_catch(SYS_EPERM)) {
+            // do something to handle
+            // then clear error
+            espace_clear();
+        }
+
+12. ESPACE: SYSTEM_ERROR_COMPATIBLE
+===================================
+
+    ESPACE provides pre-defined System Error in <espace/sys.h> because System
+    Error is offen using. That header exposes re-defined 133 Linux ERROR and
+    ERROR_RAISING function:
+
+        #incluce <espace/sys.h>
+
+        void sys_raise(int errnum);
+
     For example:
 
-        // entry of thread 1
-        void * t1_entry(void *arg)
-        {
-            liba_raise(LIBA_E001);  // it will not affect 
-                                    // to ERROR_STATE in thread 2
+        #incluce <espace/sys.h>
+        #include <errno.h>
+
+        // catch system error and raise as ESPACE's error
+        if (errno != 0)
+            sys_raise(EPERM);
+
+        // catch ESPACE's error somewhere
+        if (espace_catch(SYS_EPERM)) {
+            // do something to handle
+            // then clear error
+            espace_clear();
         }
 
-        // entry of thread 2
-        void * t2_entry(void *arg)
-        {
-            liba_raise(LIBA_E001);  // it will not affect 
-                                    // to ERROR_STATE in thread 1
+13. ESPACE: RULE_1
+==================
+
+    Name ERROR_IDENTITY_NAME follow pattern:
+
+        ^([A-Z][A-Z0-9]{0,7})_(E[A-Z0-9]{1,15})$
+
+    First block is name of library. Second block is abbreviation of ERROR's
+    name. For example:
+
+    GOOD_WAY:
+
+        LIBA_E001
+        LIBA_EABCXYZ
+        LIBA_EXXXYYY
+
+    BAD_WAY:
+
+        LIBA_B001
+        LIB_A_E001
+        _LIBA_E001
+        _1LIBA_E001
+
+14. ESPACE: RULE_2
+==================
+
+    "Define ERROR_IDENTITY for ERROR group which is same meaning."
+    
+    That way help error handling become more simple and reduce size of
+    program.
+
+    GOOD_WAY:
+
+        ESPACE_ERRDEC(LIBA_ENOITEM);        // use only ERROR_IDENTITY 
+                                            // for ERROR cases:
+                                            // not found item in something
+
+    BAD_WAY:
+
+        ESPACE_ERRDEC(LIBA_EMAPNOITEM);     // use this ERROR_IDENTITY for
+                                            // ERROR case: 
+                                            // not found item in map
+
+        ESPACE_ERRDEC(LIBA_EHTABLENOITEM);  // use this ERROR_IDENTITY for
+                                            // ERROR case: 
+                                            // not found item in hash table
+15. ESPACE: RULE_3
+==================
+
+    "Clear ERROR_STATE after handling ERROR".
+
+    GOOD_WAY:
+
+        int liba_fn(void) {
+            if (espace_catch(LIBB_E001)) {
+                if (/*handling is not success*/)
+                    return -1;
+                 espace_clear();    // handling is success
+                                    // clear error to show that error was
+                                    // handle and no error now
+            }
         }
 
-        int main(int argc, char *argv[])
-        {
-            pthread_t t1;
-            pthread_t t2;
-        
-            pthread_create(&t1, NULL, t1_entry, NULL);
-            pthread_create(&t2, NULL, t1_entry, NULL);
-        
-            ...
+    BAD_WAY:
+
+        int liba_fn(void) {
+            if (espace_catch(LIBB_E001)) {
+                if (/*handling is not success*/)
+                    return -1;
+                // handling is success
+                // if don't clear error, next function calls may be mistake 
+                // and program run into undefined behaviors
+            }
         }
 
-22. Example
+
+16. Example
 ===========
 
-    If espace has been installed on system, see "/usr/share/doc/examples/*.c".
-    If source code is avaiable, see "doc/index.txt".
+    Example is install in </usr/share/doc/example> by structure:
+
+        /usr/share/doc/example
+            |-inc
+            |   |-*.h
+            |
+            |-lib
+            |   |-*.c
+            |
+            |-src
+            |   |-*.c
+
+    Where:
+
+        - <inc> contains header files which declare ERROR.
+        - <lib> contains library's source files which define ERROR for all of
+          example.
+        - <src> contains example source files.
+
+    It doesn't provides building instruction. It is just for read to do.
